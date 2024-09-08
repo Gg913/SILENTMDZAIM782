@@ -1,0 +1,172 @@
+-- Carregar a OrionLib
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+
+-- Variáveis do Silent Aim
+local SilentAimEnabled = false
+local FOVRadius = 100 -- Raio padrão do FOV
+local TargetPart = "Head" -- Parte do corpo para mirar
+local Circle = Drawing.new("Circle") -- Circulo desenhado para FOV
+
+-- Configuração do círculo FOV
+Circle.Transparency = 1
+Circle.Thickness = 2
+Circle.Color = Color3.fromRGB(255, 0, 0)
+Circle.Filled = false
+
+-- Função para atualizar a posição do círculo
+game:GetService("RunService").RenderStepped:Connect(function()
+    Circle.Position = Vector2.new(game.Players.LocalPlayer:GetMouse().X, game.Players.LocalPlayer:GetMouse().Y)
+    Circle.Radius = FOVRadius
+end)
+
+-- Função para encontrar inimigos dentro do FOV
+local function GetClosestPlayerToCursor()
+    local closestPlayer = nil
+    local shortestDistance = FOVRadius
+
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer and player.Team ~= game.Players.LocalPlayer.Team and player.Character and player.Character:FindFirstChild(TargetPart) then
+            local targetPos = game.Workspace.CurrentCamera:WorldToViewportPoint(player.Character[TargetPart].Position)
+            local distance = (Vector2.new(targetPos.X, targetPos.Y) - Vector2.new(game.Players.LocalPlayer:GetMouse().X, game.Players.LocalPlayer:GetMouse().Y)).magnitude
+            
+            if distance < shortestDistance then
+                closestPlayer = player
+                shortestDistance = distance
+            end
+        end
+    end
+
+    return closestPlayer
+end
+
+-- ESP Line (Extra Sensory Perception)
+local ESPEnabled = false
+local ESPLines = {}
+
+-- Função para criar uma ESP Line para cada jogador inimigo
+local function CreateESPLine(player)
+    local Line = Drawing.new("Line")
+    Line.Thickness = 2
+    Line.Color = Color3.fromRGB(0, 255, 0)
+    Line.Transparency = 1
+    
+    -- Atualizar a linha a cada frame
+    game:GetService("RunService").RenderStepped:Connect(function()
+        if ESPEnabled and player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local rootPartPos, onScreen = game.Workspace.CurrentCamera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
+            if onScreen then
+                Line.Visible = true
+                Line.From = Vector2.new(game.Players.LocalPlayer:GetMouse().X, game.Players.LocalPlayer:GetMouse().Y)
+                Line.To = Vector2.new(rootPartPos.X, rootPartPos.Y)
+            else
+                Line.Visible = false
+            end
+        else
+            Line.Visible = false
+        end
+    end)
+
+    -- Guardar a linha em uma tabela para manipulação futura
+    table.insert(ESPLines, Line)
+end
+
+-- Ativar/Desativar ESP Lines para todos os jogadores
+local function ToggleESP(value)
+    ESPEnabled = value
+    if ESPEnabled then
+        -- Criar ESP Lines para todos os jogadores (exceto o local player)
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer then
+                CreateESPLine(player)
+            end
+        end
+    else
+        -- Remover as linhas quando ESP for desativado
+        for _, line in pairs(ESPLines) do
+            line.Visible = false
+            line:Remove()
+        end
+        ESPLines = {}
+    end
+end
+
+-- Função de Silent Aim
+local mt = getrawmetatable(game)
+local oldIndex = mt.__index
+setreadonly(mt, false)
+
+mt.__index = function(t, k)
+    if k == "Hit" and SilentAimEnabled then
+        local closestPlayer = GetClosestPlayerToCursor()
+        if closestPlayer and closestPlayer.Character and closestPlayer.Character:FindFirstChild(TargetPart) then
+            -- Mudar a mira para o jogador mais próximo dentro do FOV
+            return closestPlayer.Character[TargetPart].CFrame
+        end
+    end
+    return oldIndex(t, k)
+end
+
+setreadonly(mt, true)
+
+-- Criar janela principal da interface
+local Window = OrionLib:MakeWindow({Name = "Silent Aim", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionSilentAim"})
+
+-- Criar uma aba
+local Tab = Window:MakeTab({
+	Name = "Configurações",
+	Icon = "rbxassetid://4483345998", -- ícone da aba (opcional)
+	PremiumOnly = false
+})
+
+-- Ativar ou desativar Silent Aim
+Tab:AddToggle({
+	Name = "Ativar Silent Aim",
+	Default = false,
+	Callback = function(Value)
+		SilentAimEnabled = Value
+	end
+})
+
+-- Ajustar o FOV do Silent Aim
+Tab:AddSlider({
+	Name = "Raio do FOV",
+	Min = 50,
+	Max = 300,
+	Default = 100,
+	Color = Color3.fromRGB(255, 255, 255),
+	Increment = 1,
+	ValueName = "FOV",
+	Callback = function(Value)
+		FOVRadius = Value
+	end
+})
+
+-- Alterar parte do corpo que o Silent Aim mira (Head, Torso, etc.)
+Tab:AddDropdown({
+	Name = "Parte para Mirar",
+	Default = "Head",
+	Options = {"Head", "Torso", "LeftArm", "RightArm", "LeftLeg", "RightLeg"},
+	Callback = function(Value)
+		TargetPart = Value
+	end
+})
+
+-- Ativar ou desativar ESP Lines
+Tab:AddToggle({
+	Name = "Ativar ESP Lines",
+	Default = false,
+	Callback = function(Value)
+		ToggleESP(Value)
+	end
+})
+
+-- Criar uma notificação inicial
+OrionLib:MakeNotification({
+	Name = "Silent Aim e ESP Ativados",
+	Content = "Script carregado com sucesso.",
+	Image = "rbxassetid://4483345998",
+	Time = 5
+})
+
+-- Iniciar a interface
+OrionLib:Init()
