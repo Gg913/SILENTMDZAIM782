@@ -1,7 +1,7 @@
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
 
 -- Configuração da chave
-local correctKey = "sua-chave-aqui" -- Substitua com a chave desejada
+local correctKey = "mdz" -- Substitua com a chave desejada
 local enteredKey = ""
 
 -- Função para verificar a chave
