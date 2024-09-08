@@ -7,15 +7,16 @@ local FOVRadius = 100 -- Raio padrão do FOV
 local TargetPart = "Head" -- Parte do corpo para mirar
 local Circle = Drawing.new("Circle") -- Circulo desenhado para FOV
 
--- Configuração do círculo FOV
-Circle.Transparency = 1
-Circle.Thickness = 2
+-- Configuração do círculo FOV (fixo no meio da tela e transparente)
+Circle.Transparency = 0.5
+Circle.Thickness = 1
 Circle.Color = Color3.fromRGB(255, 0, 0)
 Circle.Filled = false
 
--- Função para atualizar a posição do círculo
+-- Função para manter o círculo fixo no centro da tela
 game:GetService("RunService").RenderStepped:Connect(function()
-    Circle.Position = Vector2.new(game.Players.LocalPlayer:GetMouse().X, game.Players.LocalPlayer:GetMouse().Y)
+    local camera = game.Workspace.CurrentCamera
+    Circle.Position = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
     Circle.Radius = FOVRadius
 end)
 
@@ -27,7 +28,7 @@ local function GetClosestPlayerToCursor()
     for _, player in pairs(game.Players:GetPlayers()) do
         if player ~= game.Players.LocalPlayer and player.Team ~= game.Players.LocalPlayer.Team and player.Character and player.Character:FindFirstChild(TargetPart) then
             local targetPos = game.Workspace.CurrentCamera:WorldToViewportPoint(player.Character[TargetPart].Position)
-            local distance = (Vector2.new(targetPos.X, targetPos.Y) - Vector2.new(game.Players.LocalPlayer:GetMouse().X, game.Players.LocalPlayer:GetMouse().Y)).magnitude
+            local distance = (Vector2.new(targetPos.X, targetPos.Y) - Vector2.new(game.Workspace.CurrentCamera.ViewportSize.X / 2, game.Workspace.CurrentCamera.ViewportSize.Y / 2)).magnitude
             
             if distance < shortestDistance then
                 closestPlayer = player
@@ -56,7 +57,7 @@ local function CreateESPLine(player)
             local rootPartPos, onScreen = game.Workspace.CurrentCamera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
             if onScreen then
                 Line.Visible = true
-                Line.From = Vector2.new(game.Players.LocalPlayer:GetMouse().X, game.Players.LocalPlayer:GetMouse().Y)
+                Line.From = Vector2.new(game.Workspace.CurrentCamera.ViewportSize.X / 2, game.Workspace.CurrentCamera.ViewportSize.Y / 2)
                 Line.To = Vector2.new(rootPartPos.X, rootPartPos.Y)
             else
                 Line.Visible = false
@@ -107,6 +108,24 @@ mt.__index = function(t, k)
 end
 
 setreadonly(mt, true)
+
+-- Função para ativar GodMode
+local GodModeEnabled = false
+local function ToggleGodMode(value)
+    GodModeEnabled = value
+    local player = game.Players.LocalPlayer
+
+    if GodModeEnabled then
+        -- Conectar sinal de mudança de vida do humanoide
+        player.Character.Humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+            if GodModeEnabled then
+                player.Character.Humanoid.Health = player.Character.Humanoid.MaxHealth
+            end
+        end)
+        -- Manter a saúde máxima no início
+        player.Character.Humanoid.Health = player.Character.Humanoid.MaxHealth
+    end
+end
 
 -- Criar janela principal da interface
 local Window = OrionLib:MakeWindow({Name = "Silent Aim", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionSilentAim"})
@@ -160,9 +179,18 @@ Tab:AddToggle({
 	end
 })
 
+-- Ativar ou desativar GodMode
+Tab:AddToggle({
+	Name = "Ativar GodMode",
+	Default = false,
+	Callback = function(Value)
+		ToggleGodMode(Value)
+	end
+})
+
 -- Criar uma notificação inicial
 OrionLib:MakeNotification({
-	Name = "Silent Aim e ESP Ativados",
+	Name = "Silent Aim, ESP e GodMode Ativados",
 	Content = "Script carregado com sucesso.",
 	Image = "rbxassetid://4483345998",
 	Time = 5
