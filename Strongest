@@ -1,0 +1,220 @@
+-- Carregar a biblioteca OrionLib
+local OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Orion/main/source'))()
+
+-- Criar a janela principal do menu
+local Window = OrionLib:MakeWindow({
+    Name = "Strongest Battlegrounds PvP Menu",
+    HidePremium = true,
+    SaveConfig = true,
+    ConfigFolder = "OrionLibConfig",
+})
+
+-- Criar uma aba para funções de PvP
+local PvPTab = Window:MakeTab({
+    Name = "PvP",
+    Icon = "rbxassetid://1234567890", -- Substitua pelo ID do ícone desejado
+    PremiumOnly = false
+})
+
+-- Função de Auto-Fight
+PvPTab:AddToggle({
+    Name = "Auto-Fight",
+    Default = false,
+    Callback = function(state)
+        if state then
+            while true do
+                wait(0.1)
+                local player = game.Players.LocalPlayer
+                local character = player.Character
+                if character and character:FindFirstChild("Humanoid") then
+                    -- Adicionar lógica para identificar e atacar inimigos
+                    for _, enemy in pairs(game.Workspace.Enemies:GetChildren()) do
+                        if enemy and enemy:FindFirstChild("Humanoid") and enemy ~= character then
+                            -- Colocar lógica de ataque aqui
+                            character.Humanoid:MoveTo(enemy.Position)
+                            -- Substitua com a lógica específica do jogo para atacar
+                        end
+                    end
+                end
+            end
+        end
+    end
+})
+
+-- Função de No-Clip
+PvPTab:AddToggle({
+    Name = "No-Clip",
+    Default = false,
+    Callback = function(state)
+        local player = game.Players.LocalPlayer
+        local character = player.Character
+        if character then
+            if state then
+                -- Ativar No-Clip
+                character.HumanoidRootPart.CanCollide = false
+                character.PrimaryPart.CanCollide = false
+            else
+                -- Desativar No-Clip
+                character.HumanoidRootPart.CanCollide = true
+                character.PrimaryPart.CanCollide = true
+            end
+        end
+    end
+})
+
+-- Função de ESP
+PvPTab:AddToggle({
+    Name = "ESP",
+    Default = false,
+    Callback = function(state)
+        if state then
+            -- Adicionar lógica para desenhar caixas ao redor dos inimigos
+            local player = game.Players.LocalPlayer
+            local character = player.Character
+            while true do
+                wait(1)
+                for _, enemy in pairs(game.Workspace.Enemies:GetChildren()) do
+                    if enemy and enemy:FindFirstChild("Humanoid") then
+                        -- Desenhar uma caixa ao redor do inimigo
+                        -- Substitua com a lógica específica do jogo para desenhar a caixa
+                    end
+                end
+            end
+        end
+    end
+})
+
+-- Função de Aimbot
+PvPTab:AddToggle({
+    Name = "Aimbot",
+    Default = false,
+    Callback = function(state)
+        if state then
+            local player = game.Players.LocalPlayer
+            local character = player.Character
+            while true do
+                wait(0.1)
+                if character and character:FindFirstChild("HumanoidRootPart") then
+                    local closestEnemy = nil
+                    local shortestDistance = math.huge
+                    for _, enemy in pairs(game.Workspace.Enemies:GetChildren()) do
+                        if enemy and enemy:FindFirstChild("HumanoidRootPart") then
+                            local distance = (enemy.HumanoidRootPart.Position - character.HumanoidRootPart.Position).magnitude
+                            if distance < shortestDistance then
+                                shortestDistance = distance
+                                closestEnemy = enemy
+                            end
+                        end
+                    end
+                    if closestEnemy then
+                        -- Mirar no inimigo mais próximo
+                        character.HumanoidRootPart.CFrame = CFrame.new(closestEnemy.HumanoidRootPart.Position)
+                    end
+                end
+            end
+        end
+    end
+})
+
+-- Função de Speed Boost
+PvPTab:AddSlider({
+    Name = "Speed Boost",
+    Min = 16,
+    Max = 100,
+    Default = 16,
+    Increment = 1,
+    Callback = function(value)
+        local player = game.Players.LocalPlayer
+        if player and player.Character then
+            player.Character.Humanoid.WalkSpeed = value
+        end
+    end
+})
+
+-- Função de No-Stun
+PvPTab:AddToggle({
+    Name = "No-Stun",
+    Default = false,
+    Callback = function(state)
+        if state then
+            -- Desative qualquer lógica que cause stun no jogador
+            local player = game.Players.LocalPlayer
+            if player and player.Character and player.Character:FindFirstChild("Humanoid") then
+                -- Exemplo de código para remover ou ignorar efeitos de stun
+                -- Substitua com a lógica específica do jogo
+                player.Character.Humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+                    if player.Character.Humanoid.Health <= 0 then
+                        player.Character.Humanoid.Health = player.Character.Humanoid.MaxHealth
+                    end
+                end)
+            end
+        end
+    end
+})
+
+-- Função de No-Cooldown
+PvPTab:AddToggle({
+    Name = "No-Cooldown",
+    Default = false,
+    Callback = function(state)
+        if state then
+            -- Remova ou ignore os cooldowns de habilidades
+            local player = game.Players.LocalPlayer
+            if player and player.Character then
+                -- Exemplo de código para remover cooldowns
+                -- Substitua com a lógica específica do jogo
+                -- A lógica pode variar dependendo de como as habilidades e cooldowns são implementados
+            end
+        end
+    end
+})
+
+-- Função de Instant Kill
+PvPTab:AddToggle({
+    Name = "Instant Kill",
+    Default = false,
+    Callback = function(state)
+        if state then
+            local player = game.Players.LocalPlayer
+            while true do
+                wait(0.1)
+                local character = player.Character
+                if character and character:FindFirstChild("Humanoid") then
+                    for _, enemy in pairs(game.Workspace.Enemies:GetChildren()) do
+                        if enemy and enemy:FindFirstChild("Humanoid") then
+                            -- Colocar lógica para matar instantaneamente
+                            enemy.Humanoid.Health = 0
+                        end
+                    end
+                end
+            end
+        end
+    end
+})
+
+-- Função de Auto-Equip Weapons
+PvPTab:AddToggle({
+    Name = "Auto-Equip Weapons",
+    Default = false,
+    Callback = function(state)
+        if state then
+            while true do
+                wait(1)
+                local player = game.Players.LocalPlayer
+                local character = player.Character
+                -- Substitua 'WeaponName' com o nome das armas que você deseja equipar
+                for _, weapon in pairs(game.Workspace.Weapons:GetChildren()) do
+                    if weapon.Name == "WeaponName" then
+                        if not character:FindFirstChild(weapon.Name) then
+                            -- Equipar a arma
+                            player.Character.Humanoid:EquipTool(weapon)
+                        end
+                    end
+                end
+            end
+        end
+    end
+})
+
+-- Exibir a janela
+OrionLib:Init()
