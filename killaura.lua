@@ -1,132 +1,121 @@
--- Carregar a OrionLib
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
 
--- Configurações do Menu
-local Window = OrionLib:MakeWindow({Name = "Exploit Menu", HidePremium = false, SaveConfig = true, ConfigFolder = "ExploitConfig"})
+-- Configuração da chave
+local correctKey = "sua-chave-aqui" -- Substitua com a chave desejada
+local enteredKey = ""
 
--- Criando uma aba principal
+-- Função para verificar a chave
+local function checkKey()
+	return enteredKey == correctKey
+end
+
+-- Criando uma janela no OrionLib
+local Window = OrionLib:MakeWindow({Name = "Testando Anti-Cheat", HidePremium = true, SaveConfig = true, ConfigFolder = "OrionLib"})
+
+-- Adicionando uma aba de autenticação
+local AuthTab = Window:MakeTab({
+	Name = "Autenticação",
+	PremiumOnly = false
+})
+
+-- Adicionando um campo de entrada para a chave
+AuthTab:AddTextbox({
+	Name = "Digite a chave",
+	Default = "",
+	TextDisappear = false,
+	Callback = function(value)
+		enteredKey = value
+		if checkKey() then
+			OrionLib:MakeNotification({
+				Name = "Autenticação",
+				Content = "Chave correta! Acesse a aba Funções.",
+				Image = "rbxassetid://4483345998",
+				Time = 5
+			})
+			-- Exibe a aba de funções após a autenticação
+			Window:SelectTab("Funções")
+		else
+			OrionLib:MakeNotification({
+				Name = "Autenticação",
+				Content = "Chave incorreta! Tente novamente.",
+				Image = "rbxassetid://4483345998",
+				Time = 5
+			})
+		end
+	end    
+})
+
+-- Adicionando uma aba de funções
 local Tab = Window:MakeTab({
-    Name = "Principal",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
+	Name = "Funções",
+	PremiumOnly = false,
+	Visible = false
 })
 
--- Variável para armazenar o alcance do Kill Aura
-local auraRange = 10
+-- Variáveis para armazenar o estado das funções
+local godModeEnabled = false
+local bringAllPlayersEnabled = false
+local instantKillEnabled = false
 
--- Função ESP Line para todos os jogadores
-local function EsplineForAll(range)
-    local player = game.Players.LocalPlayer
-    local character = player.Character or player.CharacterAdded:Wait()
+-- Função para atualizar o estado das funções
+local function updateFunctions()
+	local player = game.Players.LocalPlayer
+	local character = player.Character
+	if character then
+		local humanoid = character:FindFirstChildOfClass("Humanoid")
+		if godModeEnabled and humanoid then
+			humanoid.MaxHealth = math.huge
+			humanoid.Health = math.huge
+		elseif humanoid then
+			humanoid.MaxHealth = 100
+			humanoid.Health = humanoid.Health
+		end
 
-    -- Remover todas as linhas anteriores
-    for _, beam in pairs(workspace:GetChildren()) do
-        if beam:IsA("Beam") and beam.Name == "ESPBeam" then
-            beam:Destroy()
-        end
-    end
-
-    -- Adiciona ESP para todos os jogadores dentro do alcance
-    for _, targetPlayer in pairs(game.Players:GetPlayers()) do
-        if targetPlayer ~= player and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            local distance = (targetPlayer.Character.HumanoidRootPart.Position - character.HumanoidRootPart.Position).Magnitude
-            if distance <= range then
-                -- Criar a linha (Espline) para cada jogador
-                local Line = Instance.new("Beam")
-                Line.Name = "ESPBeam"
-                Line.Attachment0 = Instance.new("Attachment", character.HumanoidRootPart)
-                Line.Attachment1 = Instance.new("Attachment", targetPlayer.Character.HumanoidRootPart)
-                Line.Color = ColorSequence.new(Color3.fromRGB(255, 0, 0))
-                Line.FaceCamera = true
-                Line.Width0 = 0.1
-                Line.Width1 = 0.1
-                Line.Parent = workspace
-            end
-        end
-    end
+		for _, otherPlayer in ipairs(game.Players:GetPlayers()) do
+			if otherPlayer ~= player then
+				local otherCharacter = otherPlayer.Character
+				if otherCharacter then
+					local otherHumanoidRootPart = otherCharacter:FindFirstChild("HumanoidRootPart")
+					if bringAllPlayersEnabled and otherHumanoidRootPart then
+						otherHumanoidRootPart.CFrame = character.HumanoidRootPart.CFrame
+					end
+					
+					local otherHumanoid = otherCharacter:FindFirstChildOfClass("Humanoid")
+					if instantKillEnabled and otherHumanoid then
+						otherHumanoid.Health = 0
+					end
+				end
+			end
+		end
+	end
 end
 
--- Função Kill Aura (Ataca todos os inimigos ao redor)
-local function KillAura(range)
-    local player = game.Players.LocalPlayer
-    local character = player.Character or player.CharacterAdded:Wait()
-
-    while true do
-        wait(0.1)  -- Executar a cada 0.1 segundos
-        for _, v in pairs(game.Players:GetPlayers()) do
-            if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
-                local distance = (v.Character.HumanoidRootPart.Position - character.HumanoidRootPart.Position).Magnitude
-                if distance <= range then
-                    v.Character.Humanoid.Health = 0 -- Mata o jogador inimigo
-                end
-            end
-        end
-    end
-end
-
--- Função Kill All (Mata todos os jogadores de uma vez)
-local function KillAll()
-    for _, v in pairs(game.Players:GetPlayers()) do
-        if v ~= game.Players.LocalPlayer then
-            if v.Character and v.Character:FindFirstChild("Humanoid") then
-                v.Character.Humanoid.Health = 0 -- Mata todos os jogadores
-            end
-        end
-    end
-end
-
--- Adicionando um slider para ajustar o alcance
-Tab:AddSlider({
-    Name = "Ajustar Alcance",
-    Min = 10,
-    Max = 100,
-    Default = 10,
-    Color = Color3.fromRGB(255, 255, 255),
-    Increment = 1,
-    ValueName = "Alcance",
-    Callback = function(Value)
-        auraRange = Value
-        -- Atualizar o ESP para refletir o novo alcance
-        EsplineForAll(auraRange)
-    end
-})
-
--- Adicionando um botão para ESP Line para todos os jogadores
-Tab:AddButton({
-    Name = "ESP Line para Todos os Jogadores",
-    Callback = function()
-        EsplineForAll(auraRange)  -- Desenha linhas de ESP para todos os jogadores dentro do alcance
-    end    
-})
-
--- Adicionando Kill Aura
+-- Adicionando um botão toggle para GodMode
 Tab:AddToggle({
-    Name = "Kill Aura",
-    Default = false,
-    Callback = function(Value)
-        if Value then
-            KillAura(auraRange)  -- Ativa o Kill Aura com o alcance definido
-        else
-            -- Desative Kill Aura (se necessário, pode implementar uma maneira de parar)
-        end
-    end    
+	Name = "GodMode",
+	Default = false,
+	Callback = function(state)
+		godModeEnabled = state
+		updateFunctions()
+	end    
 })
 
--- Adicionando Kill All
-Tab:AddButton({
-    Name = "Kill All",
-    Callback = function()
-        KillAll()  -- Mata todos os jogadores
-    end    
+-- Adicionando um botão toggle para Bring All Players
+Tab:AddToggle({
+	Name = "Bring All Players",
+	Default = false,
+	Callback = function(state)
+		bringAllPlayersEnabled = state
+		updateFunctions()
+	end    
 })
 
--- Notificação de carregamento
-OrionLib:MakeNotification({
-    Name = "Exploit Carregado",
-    Content = "Menu de exploit com ESP Line, Kill Aura e Kill All foi carregado!",
-    Image = "rbxassetid://4483345998",
-    Time = 5
+-- Adicionando um botão toggle para Instant Kill
+Tab:AddToggle({
+	Name = "Instant Kill",
+	Default = false,
+	Callback = function(state)
+		instantKillEnabled = state
+		updateFunctions()
+	end    
 })
-
--- Abrir o menu
-OrionLib:Init()
