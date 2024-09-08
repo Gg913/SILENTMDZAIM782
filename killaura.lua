@@ -1,7 +1,7 @@
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
 
 -- Configuração da chave
-local correctKey = "mdz" -- Substitua com a chave desejada
+local correctKey = "sua-chave-aqui" -- Substitua com a chave desejada
 local enteredKey = ""
 
 -- Função para verificar a chave
@@ -21,6 +21,30 @@ local function findNpcFolder()
 		end
 	end
 	return nil
+end
+
+-- Função para clicar automaticamente no NPC
+local function clickNpc(npc)
+	local player = game.Players.LocalPlayer
+	local character = player.Character
+	if character then
+		local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+		local npcRootPart = npc:FindFirstChild("HumanoidRootPart")
+		if humanoidRootPart and npcRootPart then
+			-- Teleporta para o NPC
+			humanoidRootPart.CFrame = npcRootPart.CFrame
+			wait(0.1) -- Pequena pausa para garantir que o jogador esteja posicionado corretamente
+
+			-- Simula um clique do mouse (M1) para interagir com o NPC
+			local userInputService = game:GetService("UserInputService")
+			local inputService = game:GetService("VirtualInputManager")
+
+			-- Envia um clique para o jogador
+			inputService:SendInputBegin(Enum.UserInputType.MouseButton1)
+			wait(0.1)
+			inputService:SendInputEnd(Enum.UserInputType.MouseButton1)
+		end
+	end
 end
 
 -- Criando uma janela no OrionLib
@@ -104,17 +128,12 @@ local function updateFunctions()
 			end
 		end
 
-		-- Autofarm: Puxar e matar NPCs
+		-- Autofarm: Teleportar e atacar NPCs
 		if autofarmEnabled and npcFolder then
 			for _, npc in ipairs(npcFolder:GetChildren()) do
 				if npc:IsA("Model") and npc:FindFirstChildOfClass("Humanoid") then
-					local npcHumanoidRootPart = npc:FindFirstChild("HumanoidRootPart")
-					if npcHumanoidRootPart then
-						-- Puxa o NPC para perto do jogador
-						npcHumanoidRootPart.CFrame = character.HumanoidRootPart.CFrame
-						-- Mata o NPC instantaneamente
-						npc.Humanoid.Health = 0
-					end
+					clickNpc(npc)
+					wait(0.5) -- Aguarda um tempo para garantir que a ação seja registrada antes de mover para o próximo NPC
 				end
 			end
 		end
