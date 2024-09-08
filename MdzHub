@@ -1,0 +1,200 @@
+-- Carrega a OrionLib
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+
+-- Cria uma nova janela no menu
+local Window = OrionLib:MakeWindow({
+    Name = "Mdz HUB",
+    HidePremium = false,
+    SaveConfig = true,
+    ConfigFolder = "MeuConfig"
+})
+
+-- Cria uma aba no menu
+local Tab = Window:MakeTab({
+    Name = "Exploit Options",
+    Icon = "rbxassetid://4483345998", -- Você pode alterar o ícone se quiser
+    PremiumOnly = false
+})
+
+-- Adiciona um botão à aba para Speed Hack
+Tab:AddButton({
+    Name = "Speed Hack",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+        player.Character.Humanoid.WalkSpeed = 100
+    end    
+})
+
+-- Adiciona um slider para configurar a velocidade
+Tab:AddSlider({
+    Name = "Set WalkSpeed",
+    Min = 16,
+    Max = 200,
+    Default = 16,
+    Color = Color3.fromRGB(255,255,255),
+    Increment = 1,
+    ValueName = "WalkSpeed",
+    Callback = function(Value)
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+    end    
+})
+
+-- Função AntiStun para remover efeitos de stun
+local function AntiStun()
+    local player = game.Players.LocalPlayer
+    local char = player.Character or player.CharacterAdded:Wait()
+
+    -- Detecta e remove qualquer efeito de stun
+    char.ChildAdded:Connect(function(child)
+        if child.Name:lower():find("stun") or child:IsA("BoolValue") and child.Name:lower():find("stun") then
+            child:Destroy()
+        end
+    end)
+end
+
+-- Adiciona um botão para ativar o AntiStun
+Tab:AddButton({
+    Name = "Activate AntiStun",
+    Callback = function()
+        AntiStun()
+        OrionLib:MakeNotification({
+            Name = "AntiStun Activated",
+            Content = "Você agora está imune a stun!",
+            Image = "rbxassetid://4483345998",
+            Time = 5
+        })
+    end    
+})
+
+-- Função Aimbot (foca o inimigo mais próximo)
+local function Aimbot()
+    local player = game.Players.LocalPlayer
+    local mouse = player:GetMouse()
+    local closestPlayer = nil
+    local shortestDistance = math.huge
+
+    for _, enemy in pairs(game.Players:GetPlayers()) do
+        if enemy ~= player and enemy.Team ~= player.Team and enemy.Character and enemy.Character:FindFirstChild("Head") then
+            local distance = (enemy.Character.Head.Position - player.Character.Head.Position).magnitude
+            if distance < shortestDistance then
+                closestPlayer = enemy
+                shortestDistance = distance
+            end
+        end
+    end
+
+    if closestPlayer and closestPlayer.Character and closestPlayer.Character:FindFirstChild("Head") then
+        local camera = game.Workspace.CurrentCamera
+        camera.CFrame = CFrame.new(camera.CFrame.Position, closestPlayer.Character.Head.Position)
+    end
+end
+
+-- Adiciona um botão para ativar o Aimbot
+Tab:AddButton({
+    Name = "Activate Aimbot",
+    Callback = function()
+        Aimbot()
+        OrionLib:MakeNotification({
+            Name = "Aimbot Activated",
+            Content = "Aimbot ativo! Mirando no inimigo mais próximo.",
+            Image = "rbxassetid://4483345998",
+            Time = 5
+        })
+    end    
+})
+
+-- Função ESP para mostrar o nome dos jogadores através das paredes
+local function ESP()
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v ~= game.Players.LocalPlayer then
+            local billboard = Instance.new("BillboardGui", v.Character.Head)
+            billboard.Name = "ESP"
+            billboard.AlwaysOnTop = true
+            billboard.Size = UDim2.new(0, 100, 0, 50)
+            billboard.StudsOffset = Vector3.new(0, 3, 0)
+
+            local textLabel = Instance.new("TextLabel", billboard)
+            textLabel.Text = v.Name
+            textLabel.Size = UDim2.new(1, 0, 1, 0)
+            textLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+            textLabel.BackgroundTransparency = 1
+            textLabel.TextScaled = true
+        end
+    end
+end
+
+-- Adiciona um botão para ativar o ESP
+Tab:AddButton({
+    Name = "Activate ESP",
+    Callback = function()
+        ESP()
+        OrionLib:MakeNotification({
+            Name = "ESP Activated",
+            Content = "ESP ativo! Nomes visíveis através das paredes.",
+            Image = "rbxassetid://4483345998",
+            Time = 5
+        })
+    end    
+})
+
+-- Função AutoFarm (teleporta e dá socos no inimigo mais próximo)
+local function AutoFarm()
+    local player = game.Players.LocalPlayer
+    local char = player.Character or player.CharacterAdded:Wait()
+
+    while true do
+        wait(1) -- Intervalo entre as ações de farm
+
+        local closestEnemy = nil
+        local shortestDistance = math.huge
+
+        -- Acha o inimigo mais próximo
+        for _, enemy in pairs(game.Workspace.Enemies:GetChildren()) do
+            if enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
+                local distance = (enemy.HumanoidRootPart.Position - char.HumanoidRootPart.Position).magnitude
+                if distance < shortestDistance then
+                    closestEnemy = enemy
+                    shortestDistance = distance
+                end
+            end
+        end
+
+        if closestEnemy then
+            -- Teleporta para o inimigo
+            char.HumanoidRootPart.CFrame = closestEnemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, -5) -- Mantém uma distância de 5 studs
+
+            -- Dá socos no inimigo (simula M1)
+            for _ = 1, 5 do
+                wait(0.2)
+                local virtualUser = game:GetService("VirtualUser")
+                virtualUser:CaptureController()
+                virtualUser:ClickButton1(Vector2.new(0,0))
+            end
+        end
+    end
+end
+
+-- Adiciona um botão para ativar o AutoFarm
+Tab:AddButton({
+    Name = "Activate AutoFarm",
+    Callback = function()
+        AutoFarm()
+        OrionLib:MakeNotification({
+            Name = "AutoFarm Activated",
+            Content = "AutoFarm ativo! Teleportando e atacando inimigos.",
+            Image = "rbxassetid://4483345998",
+            Time = 5
+        })
+    end    
+})
+
+-- Adiciona um botão para fechar o menu
+Tab:AddButton({
+    Name = "Close Menu",
+    Callback = function()
+        OrionLib:Destroy()
+    end    
+})
+
+-- Inicializa o menu
+OrionLib:Init()
