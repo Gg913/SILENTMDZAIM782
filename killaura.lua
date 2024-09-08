@@ -9,6 +9,20 @@ local function checkKey()
 	return enteredKey == correctKey
 end
 
+-- Função para encontrar a pasta de NPCs
+local function findNpcFolder()
+	for _, obj in ipairs(workspace:GetChildren()) do
+		if obj:IsA("Folder") then
+			for _, child in ipairs(obj:GetChildren()) do
+				if child:IsA("Model") and child:FindFirstChildOfClass("Humanoid") then
+					return obj
+				end
+			end
+		end
+	end
+	return nil
+end
+
 -- Criando uma janela no OrionLib
 local Window = OrionLib:MakeWindow({Name = "Testando Anti-Cheat", HidePremium = true, SaveConfig = true, ConfigFolder = "OrionLib"})
 
@@ -56,6 +70,8 @@ local Tab = Window:MakeTab({
 local godModeEnabled = false
 local bringAllPlayersEnabled = false
 local instantKillEnabled = false
+local autofarmEnabled = false
+local npcFolder = findNpcFolder()
 
 -- Função para atualizar o estado das funções
 local function updateFunctions()
@@ -83,6 +99,21 @@ local function updateFunctions()
 					local otherHumanoid = otherCharacter:FindFirstChildOfClass("Humanoid")
 					if instantKillEnabled and otherHumanoid then
 						otherHumanoid.Health = 0
+					end
+				end
+			end
+		end
+
+		-- Autofarm: Puxar e matar NPCs
+		if autofarmEnabled and npcFolder then
+			for _, npc in ipairs(npcFolder:GetChildren()) do
+				if npc:IsA("Model") and npc:FindFirstChildOfClass("Humanoid") then
+					local npcHumanoidRootPart = npc:FindFirstChild("HumanoidRootPart")
+					if npcHumanoidRootPart then
+						-- Puxa o NPC para perto do jogador
+						npcHumanoidRootPart.CFrame = character.HumanoidRootPart.CFrame
+						-- Mata o NPC instantaneamente
+						npc.Humanoid.Health = 0
 					end
 				end
 			end
@@ -116,6 +147,16 @@ Tab:AddToggle({
 	Default = false,
 	Callback = function(state)
 		instantKillEnabled = state
+		updateFunctions()
+	end    
+})
+
+-- Adicionando um botão toggle para Autofarm
+Tab:AddToggle({
+	Name = "Autofarm",
+	Default = false,
+	Callback = function(state)
+		autofarmEnabled = state
 		updateFunctions()
 	end    
 })
