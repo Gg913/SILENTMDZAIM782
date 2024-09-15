@@ -22,41 +22,33 @@ local function AutoFarm()
     end
 end
 
--- Função para exibir notificação
-local function EnviarNotificacao(titulo, texto, duracao)
-    OrionLib:MakeNotification({
-        Name = titulo,
-        Content = texto,
-        Image = "rbxassetid://4483345998",
-        Time = duracao
-    })
-end
-
 -- Cria o menu Auto Farm usando a OrionLib
-OrionLib:MakeWindow({Name = "Mdz Menu", HidePremium = false, SaveConfig = true, ConfigFolder = "AutoFarmConfig"})
+local Window = OrionLib:MakeWindow({
+    Name = "Auto Farm Menu", 
+    HidePremium = false, 
+    SaveConfig = true, 
+    ConfigFolder = "AutoFarmConfig"
+})
 
 -- Aba principal do menu
-local MainTab = OrionLib:MakeTab({
+local MainTab = Window:MakeTab({
     Name = "Auto Farm",
-    Icon = "rbxassetid://4483345998",
+    Icon = "rbxassetid://4483345998",  -- Ícone do menu
     PremiumOnly = false
 })
 
 -- Toggle para ativar/desativar o Auto Farm
 MainTab:AddToggle({
-    Name = "Auto Farm All Orbs (Only City)",
+    Name = "Ativar Auto Farm",
     Default = false,
     Callback = function(value)
         AutoFarmAtivo = value
         
         if value then
             AutoFarm()
-        else
-            -- Notificação quando o Auto Farm é interrompido
-            EnviarNotificacao("Auto Farm", "Auto Farm interrompido", 5)
         end
     end
 })
 
--- Inicializa o menu
+-- Inicializa o menu Orion
 OrionLib:Init()
