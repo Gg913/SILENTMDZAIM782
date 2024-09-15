@@ -8,10 +8,10 @@ local AutoFarmAtivo = false
 local function AutoFarm()
     while AutoFarmAtivo do
         local orbs = {
-            {name = "Gem", location = "City"},
-            {name = "Yellow Orb", location = "City"},
-            {name = "Orange Orb", location = "City"},
-            {name = "Blue Orb", location = "City"}
+            {name = "Gem", location = "Snow City"},
+            {name = "Yellow Orb", location = "Snow City"},
+            {name = "Orange Orb", location = "Snow City"},
+            {name = "Blue Orb", location = "Snow City"}
         }
         local orbEvent = game:GetService("ReplicatedStorage").rEvents.orbEvent
         
