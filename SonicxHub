@@ -70,8 +70,8 @@ end
 
 -- Dropdown para lista de jogadores
 PlayersDropdown = Tab1:AddDropdown({
-    Name = "Lista Jogadores",
-    Description = "Selecione um jogador para teleporte",
+    Name = "Lista de Jogadores",
+    Description = "Selecione um jogador para interagir",
     Options = {"..."},
     Default = "...",
     Callback = function(Value)
@@ -95,7 +95,7 @@ UpdatePlayersDropdown()
 
 -- Função para teleportar até um jogador selecionado
 Tab1:AddButton({
-    Name = "Teleportar até Player",
+    Name = "Teleportar até Jogador",
     Callback = function()
         if SelectedPlayer then
             local TargetPlayer = Players:FindFirstChild(SelectedPlayer)
@@ -111,7 +111,7 @@ Tab1:AddButton({
 
 -- Toggle para ativar/desativar espectação
 Tab1:AddToggle({
-    Name = "Espectear Jogador Selecionado",
+    Name = "Espectar Jogador Selecionado",
     Default = false,
     Callback = function(state)
         spectatePlayer = state
@@ -152,7 +152,7 @@ Tab1:AddToggle({
 
 -- Slider para ajustar a velocidade de rotação
 Tab1:AddSlider({
-    Name = "Fling Speed",
+    Name = "Velocidade de Rotação",
     Min = 1,
     Max = 500,
     Increase = 1,
@@ -164,7 +164,7 @@ Tab1:AddSlider({
 
 -- Toggle para ativar/desativar a rotação
 Tab1:AddToggle({
-    Name = "Fling Speed </>",
+    Name = "Ativar Rotação",
     Description = "",
     Default = false,
     Callback = function(Value)
