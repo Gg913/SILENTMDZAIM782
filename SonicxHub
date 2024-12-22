@@ -1,0 +1,208 @@
+local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/realredz/RedzLibV5/refs/heads/main/Source.lua"))()
+
+local Window = redzlib:MakeWindow({
+    Title = "SonicX Hub",
+    SubTitle = "by @thzfrosty",
+    SaveFolder = "Redz Config"
+})
+
+Window:AddMinimizeButton({
+    Button = {
+        Image = redzlib:GetIcon("rbxassetid://120057291666289"),
+        Size = UDim2.fromOffset(60, 60),
+        BackgroundTransparency = 0
+    },
+    Corner = { CornerRadius = UDim.new(0, 6) }
+})
+
+-- Tabs
+local Tab1 = Window:MakeTab({"Players", "user"})
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local SelectedPlayer = nil -- Variável para armazenar o player selecionado
+local wallhackEnabled = false
+local espXrayEnabled = false
+local spectatePlayer = false
+local spectatingPlayer = nil
+local spectatingCamera = nil
+local isRotating = false
+local rotationSpeed = 1
+local speedValue = 25
+local isSpeedEnabled = false
+
+-- Função para rotacionar o jogador
+local function rotatePlayer()
+    while isRotating do
+        task.wait()
+        local player = game.Players.LocalPlayer
+        if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            player.Character.HumanoidRootPart.CFrame *= CFrame.Angles(0, math.rad(rotationSpeed), 0)
+        end
+    end
+end
+
+-- Função para obter a lista de jogadores
+local function GetPlayersList()
+    local playersList = {}
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            table.insert(playersList, player.Name)
+        end
+    end
+    return playersList
+end
+
+-- Atualizar Dropdown para listar jogadores
+local PlayersDropdown
+
+local function UpdatePlayersDropdown()
+    if PlayersDropdown then
+        local playersList = GetPlayersList()
+        if #playersList > 0 then
+            PlayersDropdown:SetOptions(playersList)
+        else
+            PlayersDropdown:SetOptions({"..."})
+        end
+    end
+end
+
+-- Dropdown para lista de jogadores
+PlayersDropdown = Tab1:AddDropdown({
+    Name = "Lista Jogadores",
+    Description = "Selecione um jogador para teleporte",
+    Options = {"..."},
+    Default = "...",
+    Callback = function(Value)
+        SelectedPlayer = Value
+    end
+})
+
+-- Atualizar lista ao adicionar ou remover jogadores
+Players.PlayerAdded:Connect(function()
+    task.wait(1)
+    UpdatePlayersDropdown()
+end)
+
+Players.PlayerRemoving:Connect(function()
+    task.wait(1)
+    UpdatePlayersDropdown()
+end)
+
+-- Atualizar lista inicial
+UpdatePlayersDropdown()
+
+-- Função para teleportar até um jogador selecionado
+Tab1:AddButton({
+    Name = "Teleportar até Player",
+    Callback = function()
+        if SelectedPlayer then
+            local TargetPlayer = Players:FindFirstChild(SelectedPlayer)
+            if TargetPlayer and TargetPlayer.Character and TargetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                local LocalCharacter = LocalPlayer.Character
+                if LocalCharacter and LocalCharacter:FindFirstChild("HumanoidRootPart") then
+                    LocalCharacter.HumanoidRootPart.CFrame = TargetPlayer.Character.HumanoidRootPart.CFrame
+                end
+            end
+        end
+    end
+})
+
+-- Toggle para ativar/desativar espectação
+Tab1:AddToggle({
+    Name = "Espectear Jogador Selecionado",
+    Default = false,
+    Callback = function(state)
+        spectatePlayer = state
+        if spectatePlayer and SelectedPlayer then
+            local TargetPlayer = Players:FindFirstChild(SelectedPlayer)
+            if TargetPlayer and TargetPlayer.Character then
+                spectatingPlayer = TargetPlayer
+                spectatingCamera = workspace.CurrentCamera
+                spectatingCamera.CameraSubject = TargetPlayer.Character
+            end
+        else
+            if spectatingCamera then
+                spectatingCamera.CameraSubject = LocalPlayer.Character
+                spectatingPlayer = nil
+            end
+        end
+    end
+})
+
+-- Wallhack/X-Ray Toggle
+Tab1:AddToggle({
+    Name = "Wallhack/X-Ray",
+    Default = false,
+    Callback = function(state)
+        espXrayEnabled = state
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character then
+                for _, part in pairs(player.Character:GetChildren()) do
+                    if part:IsA("BasePart") then
+                        part.Transparency = espXrayEnabled and 0.5 or 0
+                        part.Material = espXrayEnabled and Enum.Material.ForceField or Enum.Material.Plastic
+                    end
+                end
+            end
+        end
+    end
+})
+
+-- Slider para ajustar a velocidade de rotação
+Tab1:AddSlider({
+    Name = "Fling Speed",
+    Min = 1,
+    Max = 500,
+    Increase = 1,
+    Default = 1,
+    Callback = function(Value)
+        rotationSpeed = Value
+    end
+})
+
+-- Toggle para ativar/desativar a rotação
+Tab1:AddToggle({
+    Name = "Fling Speed </>",
+    Description = "",
+    Default = false,
+    Callback = function(Value)
+        isRotating = Value
+        if isRotating then
+            task.spawn(rotatePlayer)
+        end
+    end
+})
+
+-- Função de velocidade
+Tab1:AddToggle({
+    Name = "Ativar Velocidade",
+    Default = false,
+    Callback = function(state)
+        isSpeedEnabled = state
+        if isSpeedEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.WalkSpeed = speedValue
+        else
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                LocalPlayer.Character.Humanoid.WalkSpeed = 16
+            end
+        end
+    end
+})
+
+Tab1:AddSlider({
+    Name = "Velocidade",
+    Min = 16,
+    Max = 100,
+    Default = 25,
+    Callback = function(Value)
+        speedValue = Value
+        if isSpeedEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.WalkSpeed = speedValue
+        end
+    end
+})
+
+-- Inicializar sistema
+UpdatePlayersDropdown()
