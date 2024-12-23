@@ -1,0 +1,62 @@
+--[[
+	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
+]]
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+
+local player = Players.LocalPlayer
+local backpack = player:WaitForChild("Backpack")
+local accessoryInventory = player:WaitForChild("AccessoryInventoryList")
+local swordInventory = player:WaitForChild("InventoryList")
+local LegendaryFruits = ReplicatedStorage:WaitForChild("FRUITNOTIFSSPAWNS"):WaitForChild("Legendary")
+
+local function addItemsToBackpack()
+    for _, fruit in ipairs(LegendaryFruits:GetChildren()) do
+        local fruitClone = fruit:Clone()
+        fruitClone.Parent = backpack
+    end
+end
+
+local function addAllAccessories()
+    for _, item in ipairs(accessoryInventory:GetChildren()) do
+        if item:IsA("BoolValue") then
+            item.Value = true
+        end
+    end
+end
+
+local function addAllSwords()
+    for _, item in ipairs(swordInventory:GetChildren()) do
+        if item:IsA("BoolValue") then
+            item.Value = true
+        end
+    end
+end
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = player:WaitForChild("PlayerGui")
+screenGui.Name = "InventoryControlGui"
+
+local frame = Instance.new("Frame")
+frame.Parent = screenGui
+frame.Size = UDim2.new(0, 200, 0, 150)
+frame.Position = UDim2.new(1, -220, 0.5, -75)
+frame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+frame.BorderSizePixel = 2
+
+local function createButton(parent, text, callback)
+    local button = Instance.new("TextButton")
+    button.Parent = parent
+    button.Size = UDim2.new(1, -20, 0, 40)
+    button.Position = UDim2.new(0, 10, 0, #parent:GetChildren() * 45 - 45)
+    button.Text = text
+    button.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+    button.TextColor3 = Color3.new(1, 1, 1)
+    button.Font = Enum.Font.SourceSansBold
+    button.TextSize = 18
+    button.MouseButton1Click:Connect(callback)
+end
+
+createButton(frame, "Get All Swords", addAllSwords)
+createButton(frame, "Get All Accessories", addAllAccessories)
+createButton(frame, "Get All Legendary Fruits", addItemsToBackpack)
